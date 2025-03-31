@@ -34,7 +34,7 @@ Mi principal motivacion fue doble:
 
 ## 📸 Capturas de pantalla
 
-![Interfaz principal del lector PDf a Voz](PDF_to_TTS\images\captura1.JPG)
+![Interfaz principal del lector PDf a Voz](images\captura1.JPG)
 
 ## 🛠 Tecnologias Utilizadas
 
