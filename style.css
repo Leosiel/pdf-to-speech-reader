@@ -1,0 +1,558 @@
+/* --- Variables Globales Mejoradas --- */
+:root {
+    /* Colores */
+    --color-primary: #3B82F6; /* Azul más suave */
+    --color-primary-hover: #2563EB;
+    --color-background: #F9FAFB; /* Gris muy claro */
+    --color-section-background: #FFFFFF;
+    --color-text-primary: #1F2937; /* Gris oscuro (casi negro) */
+    --color-text-secondary: #6B7280; /* Gris medio */
+    --color-border-light: #E5E7EB;
+    --color-border: #D1D5DB;
+    --color-sidebar-background: #F3F4F6; /* Color específico para sidebar */
+    /* --color-spotlight-overlay: rgba(20, 20, 40, 0.45); /* Ya no se usa */
+    --color-disabled-text: #9CA3AF;
+    --color-disabled-bg: #E5E7EB;
+    --color-indicator: var(--color-primary); /* Color del indicador */
+
+    /* Tipografía */
+    --font-family-base: 'Lato', sans-serif;
+    --font-size-base: 16px;
+    --line-height-base: 1.6;
+
+    /* Espaciado */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --sidebar-width: 280px; /* Ancho de la barra lateral */
+
+
+    /* Bordes y Sombras */
+    --border-radius: 6px; /* Bordes ligeramente redondeados */
+    --box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --box-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Reset Básico y Estilos Globales --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--font-size-base); /* Base para REMs */
+}
+
+body {
+    font-family: var(--font-family-base);
+    line-height: var(--line-height-base);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+}
+
+h1, h2, h3, p {
+    margin: 0; /* Resetear márgenes */
+}
+
+h2 { /* Estilo general para títulos de sección */
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border-light);
+    width: 100%;
+}
+
+h3 { /* Estilo para títulos dentro de la sidebar */
+    font-size: 1rem; /* Más pequeño que H2 */
+    font-weight: 700;
+    color: var(--color-text-secondary); /* Más tenue */
+    margin-bottom: var(--spacing-md);
+    text-align: left;
+    width: 100%;
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+
+label {
+    font-size: 0.875rem; /* 14px */
+    color: var(--color-text-secondary);
+    margin-right: var(--spacing-xs);
+    display: block; /* Para que ocupen su línea en la sidebar */
+    margin-bottom: var(--spacing-xs);
+}
+
+/* --- Estilos de Sección --- */
+.app-section {
+    width: 100%;
+    max-width: 1200px; /* Aumentamos max-width para acomodar sidebar */
+    background-color: var(--color-section-background);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--box-shadow-md);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, padding 0.5s ease-out, margin 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+/* -------------------------- */
+/* --- Sección de Carga --- */
+/* -------------------------- */
+#upload-section {
+    padding: var(--spacing-xl);
+    border: 1px solid var(--color-border-light);
+    box-shadow: none;
+    margin-top: var(--spacing-lg);
+    max-width: 950px; /* Mantenemos más estrecho para el upload */
+}
+
+/* Estado Expandido */
+#upload-section.expanded {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    opacity: 1;
+}
+#upload-section.expanded .upload-content-collapsed { display: none; }
+#upload-section.expanded .upload-content-expanded {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+#upload-section.expanded h2 {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+#upload-section.expanded p {
+    color: var(--color-text-secondary);
+    max-width: 400px;
+}
+
+/* Estado Colapsado */
+#upload-section.collapsed {
+    max-height: 65px;
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+    opacity: 1;
+    border: 1px solid transparent;
+    box-shadow: var(--box-shadow-sm);
+    max-width: 950px; /* Mantenemos más estrecho para el upload */
+}
+#upload-section.collapsed .upload-content-expanded { display: none; }
+#upload-section.collapsed .upload-content-collapsed {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: var(--spacing-md);
+}
+#upload-section.collapsed h2 { display: none; }
+#upload-section.collapsed span {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+#upload-section.collapsed strong {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 350px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Controles de Carga */
+.upload-button, .change-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--box-shadow-sm);
+}
+.upload-button:hover, .change-button:hover {
+    background-color: var(--color-primary-hover);
+    box-shadow: var(--box-shadow-md);
+}
+.change-button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.upload-controls {
+    margin-top: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+#status {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+
+/* --------------------------------------------- */
+/* --- Sección del Visor con Barra Lateral --- */
+/* --------------------------------------------- */
+#viewer-section {
+     padding: 0; /* Padding se manejará dentro */
+     border: none;
+     box-shadow: none;
+     margin-bottom: 0;
+     background-color: transparent; /* El fondo lo darán las partes internas */
+}
+/* Estado Colapsado */
+#viewer-section.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+/* Estado Expandido */
+#viewer-section.expanded {
+    max-height: none; /* Permitir que crezca */
+    padding: 0; /* Sin padding exterior */
+    opacity: 1;
+    /* Borde y sombra ahora en la sección */
+    margin-bottom: var(--spacing-lg);
+    display: flex; /* Necesario para que viewer-main-area funcione bien */
+    background-color: var(--color-section-background); /* Fondo blanco general */
+    border: 1px solid var(--color-border-light); /* Borde general */
+    box-shadow: var(--box-shadow-md); /* Sombra general */
+}
+
+/* Contenedor Principal Flex (Sidebar + Content) */
+.viewer-main-area {
+    display: flex;
+    width: 100%;
+    min-height: 70vh; /* Altura mínima para darle cuerpo */
+}
+
+/* Estilos de la Barra Lateral */
+#controls-sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0; /* Evita que se encoja */
+    background-color: var(--color-sidebar-background);
+    padding: var(--spacing-lg);
+    border-right: 1px solid var(--color-border); /* Línea divisoria */
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl); /* Espacio entre grupos de control */
+    overflow-y: auto; /* Scroll si el contenido es muy alto */
+}
+#controls-sidebar h2 { /* Título principal de la sidebar */
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    font-size: 1.1rem; /* Ligeramente más pequeño */
+}
+
+/* Estilos para Grupos de Control dentro de la Sidebar */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md); /* Espacio interno del grupo */
+}
+.control-group h3 {
+    margin-bottom: var(--spacing-md); /* Espacio debajo del título del grupo */
+}
+
+/* Ajustes a los controles ahora en la sidebar */
+.navigation .nav-page-controls,
+.tts-controls .section-nav-controls,
+.tts-controls .tts-settings,
+.tts-controls .rate-control {
+    display: flex;
+    flex-direction: column; /* Apilar verticalmente por defecto */
+    gap: var(--spacing-sm); /* Espacio entre elementos apilados */
+    align-items: stretch; /* Que ocupen el ancho de la sidebar */
+}
+
+.nav-page-controls {
+     flex-direction: row; /* Dejar botones de página en fila */
+     flex-wrap: wrap; /* Permitir que se envuelvan si no caben */
+     justify-content: space-between;
+     align-items: center;
+}
+.nav-page-controls .page-input-group {
+    display: flex;
+    flex-direction: column; /* Apilar label y input+span */
+    align-items: center; /* Centrar */
+    gap: var(--spacing-xs);
+}
+.nav-page-controls .page-input-group label {
+     margin-bottom: 0;
+     text-align: center; /* Centrar label */
+}
+.nav-page-controls .page-input-group input {
+    margin: 0; /* Quitar márgenes previos */
+    width: 55px !important; /* Ajustar ancho si es necesario */
+    padding: var(--spacing-xs);
+    font-size: 0.9rem;
+    text-align: center;
+}
+.nav-page-controls .page-input-group div { /* Contenedor input/span */
+    display: flex;
+    align-items: center;
+}
+.nav-page-controls button {
+    padding: var(--spacing-sm) var(--spacing-xs); /* Ajustar padding si es necesario */
+    font-size: 0.85rem;
+}
+#goto-page {
+    padding: var(--spacing-sm) var(--spacing-md); /* Resetear padding si es necesario */
+}
+
+
+.section-nav-controls {
+     flex-direction: row; /* Mantener botones de sección y span en línea */
+     justify-content: space-between;
+     align-items: center;
+}
+#section-info {
+     margin: 0; /* Quitar margen previo */
+     text-align: center;
+     font-size: 0.85rem;
+     color: var(--color-text-secondary);
+}
+#prev-section, #next-section {
+    flex-grow: 0; /* No crecer */
+    padding: var(--spacing-sm) var(--spacing-xs); /* Más pequeños */
+    font-size: 0.85rem;
+}
+#play-pause { /* Botón principal de lectura */
+    padding: var(--spacing-md) var(--spacing-lg); /* Más grande */
+    font-size: 1rem;
+    font-weight: 700;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    margin-top: var(--spacing-sm); /* Espacio arriba */
+}
+#play-pause:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+}
+#play-pause:disabled {
+    background-color: var(--color-disabled-bg) !important; /* Override */
+    color: var(--color-disabled-text) !important;
+    border: 1px solid var(--color-border-light) !important;
+}
+
+.tts-settings label {
+    margin-bottom: var(--spacing-xs);
+    margin-right: 0; /* Quitar margen derecho */
+    font-weight: 400; /* Normal weight for labels */
+}
+#voice-select {
+    width: 100%; /* Ocupar todo el ancho */
+    min-width: unset; /* Quitar min-width previo */
+    max-width: unset; /* Quitar max-width previo */
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background-color: var(--color-section-background);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.tts-settings .rate-control {
+    flex-direction: row; /* Slider y valor en línea */
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+#rate-slider {
+    flex-grow: 1; /* Que ocupe el espacio disponible */
+    width: auto; /* Ancho automático */
+    margin: 0; /* Resetear márgenes */
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+#rate-value {
+    min-width: 2.5em; /* Ajustar si es necesario */
+    text-align: right;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+
+/* Ajustes a botones generales dentro de controles */
+.navigation button, .tts-controls button:not(#play-pause) {
+    /* Estilos por defecto para botones secundarios en sidebar */
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-section-background);
+    color: var(--color-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    width: auto; /* Ancho automático por defecto */
+}
+.navigation button:hover:not(:disabled),
+.tts-controls button:not(#play-pause):hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary-hover);
+}
+
+/* Estilo para botones deshabilitados (general) */
+button:disabled,
+select:disabled,
+input:disabled { /* Aplicar a todos los inputs deshabilitados */
+    background-color: var(--color-disabled-bg) !important; /* !important para sobreescribir específicos si es necesario */
+    color: var(--color-disabled-text) !important;
+    border-color: var(--color-border-light) !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+}
+/* Asegurar que play/pause deshabilitado también se vea bien */
+#play-pause:disabled {
+    background-color: var(--color-disabled-bg) !important;
+    color: var(--color-disabled-text) !important;
+    border: 1px solid var(--color-border-light) !important; /* Añadir borde para consistencia */
+}
+
+
+/* Área de Contenido del Visor */
+.viewer-content-area {
+    flex-grow: 1; /* Ocupa el espacio restante */
+    padding: var(--spacing-lg); /* Padding interno reducido */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra el visor si es más estrecho que el área */
+    overflow-y: auto; /* Permitir scroll independiente si el contenido es alto */
+    min-width: 0; /* Fix para flexbox */
+}
+.viewer-content-area h2 { /* Título sobre el visor */
+     width: 100%;
+     text-align: center;
+     margin-bottom: var(--spacing-lg); /* Espacio antes del visor */
+}
+
+
+/* --------------------------------------------- */
+/* --- Visor PDF, Capas e Indicador Lateral --- */
+/* --------------------------------------------- */
+#pdf-viewer {
+    position: relative; /* Necesario para elementos hijos absolutos */
+    border: 1px solid var(--color-border);
+    box-shadow: var(--box-shadow-sm);
+    width: 100%; /* Ocupa el ancho del content-area */
+    max-width: 850px; /* Ancho máximo razonable para el PDF */
+    background-color: #fff; /* Fondo blanco explícito */
+    overflow: hidden; /* Oculta lo que sobresalga, ¡IMPORTANTE! */
+    border-radius: var(--border-radius);
+    margin: 0 auto; /* Centrar si max-width es menor que el contenedor */
+}
+
+#pdf-canvas {
+    display: block; /* Evita espacio extra debajo */
+    width: 100%;
+    height: auto;
+    background-color: #EBEBEB; /* Fondo mientras carga */
+}
+
+/* Capa de Texto */
+.textLayer {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    overflow: hidden; /* Oculta spans que se salgan */
+    opacity: 1; line-height: 1.0;
+    pointer-events: none; /* Capa no interactiva */
+    z-index: 5; /* Encima del canvas */
+}
+.textLayer > span {
+    color: transparent; /* Texto invisible, sólo para estructura */
+    position: absolute; white-space: pre; /* Mantiene espacios */
+    cursor: text; transform-origin: 0% 0%;
+    pointer-events: auto; /* Spans sí interactivos (para futuro) */
+    /* border: 1px dashed rgba(255, 0, 0, 0.3); */ /* DEBUG: Descomentar para ver los spans */
+}
+
+/* Indicador Lateral */
+.highlight-indicator {
+    position: absolute;
+    left: 3px; /* Pequeño espacio desde el borde izquierdo del visor */
+    top: 0; /* Posición vertical inicial, será establecida por JS */
+    width: 5px; /* Ancho de la barra indicadora */
+    background-color: var(--color-indicator); /* Usar variable de color */
+    z-index: 8; /* Encima del canvas y textLayer */
+    height: 0; /* Inicialmente oculta, la altura será establecida por JS */
+    border-radius: 3px; /* Bordes redondeados */
+    transition: top 0.2s ease-out, height 0.2s ease-out, opacity 0.2s ease-out; /* Transición suave */
+    pointer-events: none; /* No debe interferir con el ratón */
+    opacity: 0; /* Empezar totalmente transparente/oculto */
+}
+/* Estilo cuando está activo (JS modificará top y height) */
+.highlight-indicator.active {
+    opacity: 0.85; /* Hacerlo visible pero ligeramente transparente */
+}
+
+/* Ocultar inputs de archivo reales */
+input[type="file"][hidden] { display: none; }
+
+/* --- Media Query para pantallas pequeñas --- */
+@media (max-width: 850px) { /* Ajustar breakpoint si es necesario */
+    .viewer-main-area {
+        flex-direction: column; /* Apilar sidebar encima del contenido */
+    }
+
+    #controls-sidebar {
+        width: 100%; /* Sidebar ocupa todo el ancho */
+        border-right: none; /* Quitar borde lateral */
+        border-bottom: 1px solid var(--color-border); /* Borde inferior */
+        max-height: 50vh; /* Limitar altura y permitir scroll */
+        overflow-y: auto;
+    }
+
+    .viewer-content-area {
+        padding: var(--spacing-md); /* Menos padding en pantallas pequeñas */
+    }
+
+     #pdf-viewer {
+        max-width: 100%; /* Permitir que ocupe todo el ancho disponible */
+    }
+
+    #upload-section.collapsed strong {
+         max-width: 150px; /* Reducir ancho del nombre de archivo */
+    }
+
+    /* Ajustar controles en sidebar para layout horizontal si es necesario */
+    .nav-page-controls {
+        gap: var(--spacing-sm);
+    }
+     .nav-page-controls button {
+        padding: var(--spacing-sm);
+    }
+}

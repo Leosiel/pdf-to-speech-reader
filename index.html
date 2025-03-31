@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector PDF a Voz (Text-to-Speech)</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <!-- /Google Font -->
+
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Librerías PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"></script>
+</head>
+<body>
+
+    <!-- ========================
+         Sección de Carga de PDF
+         ======================== -->
+    <section id="upload-section" class="app-section expanded">
+        <!-- Contenido sin cambios -->
+        <div class="upload-content-expanded">
+            <h2>1. Carga tu documento PDF</h2>
+            <p>Selecciona el archivo que deseas leer.</p>
+            <div class="upload-controls">
+                <label for="pdf-upload" class="upload-button">Seleccionar Archivo PDF</label>
+                <input type="file" id="pdf-upload" accept=".pdf" hidden>
+                <span id="status">No hay PDF cargado.</span>
+            </div>
+        </div>
+        <div class="upload-content-collapsed">
+            <span>PDF Cargado: <strong id="loaded-pdf-name">Ninguno</strong></span>
+            <label for="pdf-upload-collapsed" class="change-button">Cambiar</label>
+            <input type="file" id="pdf-upload-collapsed" accept=".pdf" hidden>
+        </div>
+    </section>
+
+    <!-- ========================
+         Sección del Visor PDF y TTS (Con Barra Lateral)
+         ======================== -->
+    <section id="viewer-section" class="app-section collapsed">
+        <!-- Contenedor principal para sidebar y contenido -->
+        <div class="viewer-main-area">
+
+            <!-- ===== BARRA LATERAL DE CONTROLES ===== -->
+            <aside id="controls-sidebar">
+                <h2>Controles</h2>
+
+                <!-- Navegación de Páginas -->
+                <div class="navigation control-group">
+                    <h3>Navegación</h3>
+                    <div class="nav-page-controls">
+                        <button id="prev-page" disabled title="Página Anterior"><<</button>
+                        <div class="page-input-group">
+                             <label for="page-num-input">Página:</label>
+                             <div>
+                                <input type="number" id="page-num-input" min="1" style="width: 60px;" disabled>
+                                <span>/ <span id="total-pages-display">0</span></span>
+                            </div>
+                        </div>
+                        <button id="goto-page" disabled title="Ir a Página">Ir</button>
+                        <button id="next-page" disabled title="Página Siguiente">>></button>
+                    </div>
+                </div>
+
+                <!-- Controles de Text-to-Speech (TTS) -->
+                <div class="tts-controls control-group">
+                     <h3>Lectura</h3>
+                     <div class="section-nav-controls">
+                        <button id="prev-section" disabled title="Sección Anterior">< Sección</button>
+                         <span id="section-info">Sección 0 / 0</span>
+                        <button id="next-section" disabled title="Sección Siguiente">Sección ></button>
+                     </div>
+                     <button id="play-pause" disabled title="Leer/Detener">▶️ Leer</button>
+                     <div class="tts-settings">
+                        <label for="voice-select">Voz:</label>
+                        <select id="voice-select" disabled></select>
+                        <label for="rate-slider">Velocidad:</label>
+                        <div class="rate-control">
+                            <input type="range" id="rate-slider" min="0.5" max="2" step="0.1" value="1" disabled>
+                            <span id="rate-value">1.0</span>
+                        </div>
+                     </div>
+                </div>
+            </aside>
+            <!-- ===== FIN BARRA LATERAL ===== -->
+
+            <!-- ===== ÁREA DE CONTENIDO DEL VISOR ===== -->
+            <div class="viewer-content-area">
+                 <h2>2. Lectura del Documento</h2>
+
+                <!-- Visor de PDF con Capas e Indicador -->
+                <div id="pdf-viewer">
+                    <canvas id="pdf-canvas"></canvas>
+                    <div id="text-layer" class="textLayer"></div>
+                    <!-- NUEVO: Indicador lateral -->
+                    <div id="highlight-indicator-bar" class="highlight-indicator"></div>
+                    <!-- Los overlays anteriores ya no existen -->
+                </div>
+            </div>
+            <!-- ===== FIN ÁREA DE CONTENIDO ===== -->
+
+        </div> <!-- Fin de viewer-main-area -->
+    </section>
+
+    <!-- Script principal de la aplicación -->
+    <script src="script.js" type="module"></script>
+</body>
+</html>
