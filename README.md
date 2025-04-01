@@ -50,10 +50,9 @@ Si deseas ejecutar el proyecto en tu máquina local:
 
 1.  **Clona o descarga el repositorio:**
     ```bash
-    git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git
-    cd TU_REPOSITORIO
+    git clone [https://github.com/Leosiel/pdf-to-speech-reader.git]
+    cd pdf-to-speech-reader
     ```
-    *(Reemplaza TU_USUARIO/TU_REPOSITORIO con tu nombre de usuario y el nombre del repositorio)*
 
 2.  **Opción 1: Servidor Local (Recomendado)**
     Debido a que el proyecto utiliza Módulos JavaScript (`type="module"`), la forma más fiable de ejecutarlo es a través de un servidor local simple para evitar problemas de CORS o carga de módulos.
