@@ -10,7 +10,6 @@
     --color-border-light: #E5E7EB;
     --color-border: #D1D5DB;
     --color-sidebar-background: #F3F4F6; /* Color específico para sidebar */
-    /* --color-spotlight-overlay: rgba(20, 20, 40, 0.45); /* Ya no se usa */
     --color-disabled-text: #9CA3AF;
     --color-disabled-bg: #E5E7EB;
     --color-indicator: var(--color-primary); /* Color del indicador */
@@ -26,7 +25,7 @@
     --spacing-md: 16px;
     --spacing-lg: 24px;
     --spacing-xl: 32px;
-    --sidebar-width: 280px; /* Ancho de la barra lateral */
+    --sidebar-width: 340px; /* Ancho de la barra lateral */
 
 
     /* Bordes y Sombras */
@@ -95,7 +94,7 @@ label {
 /* --- Estilos de Sección --- */
 .app-section {
     width: 100%;
-    max-width: 1200px; /* Aumentamos max-width para acomodar sidebar */
+    /*max-width: 1200px; /* Aumentamos max-width para acomodar sidebar */
     background-color: var(--color-section-background);
     margin-bottom: var(--spacing-lg);
     box-shadow: var(--box-shadow-md);
@@ -112,7 +111,7 @@ label {
     border: 1px solid var(--color-border-light);
     box-shadow: none;
     margin-top: var(--spacing-lg);
-    max-width: 950px; /* Mantenemos más estrecho para el upload */
+    max-width: 1000px; /* Mantenemos más estrecho para el upload */
 }
 
 /* Estado Expandido */
@@ -286,96 +285,145 @@ label {
     margin-bottom: var(--spacing-md); /* Espacio debajo del título del grupo */
 }
 
-/* Ajustes a los controles ahora en la sidebar */
-.navigation .nav-page-controls,
-.tts-controls .section-nav-controls,
-.tts-controls .tts-settings,
-.tts-controls .rate-control {
+/* ========================================= */
+/* === MODIFICACIONES LAYOUT HORIZONTAL ==== */
+/* ========================================= */
+
+/* --- Grupo de Navegación de Página (Modificado) --- */
+.navigation .nav-page-controls {
     display: flex;
-    flex-direction: column; /* Apilar verticalmente por defecto */
-    gap: var(--spacing-sm); /* Espacio entre elementos apilados */
-    align-items: stretch; /* Que ocupen el ancho de la sidebar */
+    flex-direction: row;
+    flex-wrap: nowrap; /* Evitar que se rompa la línea */
+    justify-content: space-between; /* Botones a los extremos, grupo central ocupa espacio */
+    align-items: center;
+    gap: var(--spacing-sm); /* Espacio entre botones y grupo central */
+    width: 100%;
 }
 
-.nav-page-controls {
-     flex-direction: row; /* Dejar botones de página en fila */
-     flex-wrap: wrap; /* Permitir que se envuelvan si no caben */
-     justify-content: space-between;
-     align-items: center;
+.navigation .nav-page-controls button {
+    padding: var(--spacing-sm) var(--spacing-xs); /* Botones un poco más pequeños */
+    flex-shrink: 0; /* Evitar que los botones se encojan */
 }
+
+/* Grupo central (label, input/total, botón Ir) */
 .nav-page-controls .page-input-group {
     display: flex;
-    flex-direction: column; /* Apilar label y input+span */
-    align-items: center; /* Centrar */
-    gap: var(--spacing-xs);
+    flex-direction: row; /* Horizontal */
+    align-items: center;
+    justify-content: center; /* Centrar contenido dentro del grupo */
+    gap: var(--spacing-xs); /* Espacio pequeño entre elementos internos */
+    flex-grow: 1; /* Permitir que ocupe espacio central */
+    flex-shrink: 1; /* Permitir encogerse si es necesario */
+    min-width: 0; /* Para permitir encogimiento */
 }
+
 .nav-page-controls .page-input-group label {
-     margin-bottom: 0;
-     text-align: center; /* Centrar label */
+    margin-bottom: 0; /* Quitar margen inferior */
+    white-space: nowrap; /* Evitar que "Página:" se rompa */
+    flex-shrink: 0; /* No encoger label */
 }
-.nav-page-controls .page-input-group input {
-    margin: 0; /* Quitar márgenes previos */
-    width: 55px !important; /* Ajustar ancho si es necesario */
-    padding: var(--spacing-xs);
-    font-size: 0.9rem;
-    text-align: center;
-}
-.nav-page-controls .page-input-group div { /* Contenedor input/span */
+
+/* Contenedor para input y total */
+.nav-page-controls .page-input-group > div {
     display: flex;
     align-items: center;
+    flex-shrink: 0; /* Evitar que este div se encoja */
 }
-.nav-page-controls button {
-    padding: var(--spacing-sm) var(--spacing-xs); /* Ajustar padding si es necesario */
+
+.nav-page-controls .page-input-group input#page-num-input {
+    /* width se define inline */
+    width: 60px;
+    padding: var(--spacing-xs);
+    margin: 0;
+    text-align: center;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    flex-shrink: 0; /* No encoger input */
+}
+
+.nav-page-controls .page-input-group span {
+    white-space: nowrap; /* Evitar que "/ N" se rompa */
+    margin-left: 2px; /* Pequeño espacio antes del total */
+    flex-shrink: 0;
+}
+
+/* Botón "Ir" (ahora dentro del grupo) */
+.nav-page-controls .page-input-group #goto-page {
+    margin-left: var(--spacing-sm); /* Espacio antes de "Ir" */
+    padding: var(--spacing-sm) var(--spacing-sm); /* Padding ajustado */
     font-size: 0.85rem;
-}
-#goto-page {
-    padding: var(--spacing-sm) var(--spacing-md); /* Resetear padding si es necesario */
+    flex-shrink: 0;
 }
 
-
-.section-nav-controls {
-     flex-direction: row; /* Mantener botones de sección y span en línea */
-     justify-content: space-between;
-     align-items: center;
+/* --- Grupo de Lectura TTS (Modificado) --- */
+.tts-controls {
+    gap: var(--spacing-md); /* Espacio entre nav-sección, play, settings */
 }
-#section-info {
-     margin: 0; /* Quitar margen previo */
-     text-align: center;
+
+/* Navegación de sección (mantener horizontal) */
+.tts-controls .section-nav-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: var(--spacing-sm);
+}
+.tts-controls .section-nav-controls button {
+     padding: var(--spacing-sm) var(--spacing-xs);
      font-size: 0.85rem;
-     color: var(--color-text-secondary);
+     flex-shrink: 0;
 }
-#prev-section, #next-section {
-    flex-grow: 0; /* No crecer */
-    padding: var(--spacing-sm) var(--spacing-xs); /* Más pequeños */
+.tts-controls .section-nav-controls span#section-info {
+    text-align: center;
+    flex-grow: 1; /* Ocupa espacio central */
+    white-space: nowrap;
     font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin: 0 var(--spacing-xs); /* Pequeños márgenes laterales */
 }
-#play-pause { /* Botón principal de lectura */
-    padding: var(--spacing-md) var(--spacing-lg); /* Más grande */
+
+/* Botón Play/Pause (destacado) */
+#play-pause {
+    width: 100%; /* Ocupar todo el ancho */
+    padding: var(--spacing-md) var(--spacing-lg);
     font-size: 1rem;
     font-weight: 700;
+    margin-top: var(--spacing-xs); /* Pequeño espacio arriba */
+    margin-bottom: var(--spacing-md); /* Espacio antes de los settings */
     background-color: var(--color-primary);
     color: white;
     border: none;
-    margin-top: var(--spacing-sm); /* Espacio arriba */
 }
 #play-pause:hover:not(:disabled) {
     background-color: var(--color-primary-hover);
 }
-#play-pause:disabled {
-    background-color: var(--color-disabled-bg) !important; /* Override */
-    color: var(--color-disabled-text) !important;
-    border: 1px solid var(--color-border-light) !important;
+
+/* Contenedor de ajustes TTS (Voz y Velocidad) - AHORA HORIZONTAL */
+.tts-controls .tts-settings {
+    display: flex;
+    flex-direction: column; /* VERTICAL */
+    flex-wrap: nowrap; /* No wrap necesario en columna */
+    gap: var(--spacing-md); /* Espacio entre items */
+    width: 100%;
 }
 
-.tts-settings label {
-    margin-bottom: var(--spacing-xs);
-    margin-right: 0; /* Quitar margen derecho */
+/* Estilo para cada item de ajuste (Voz, Velocidad) */
+.tts-settings .setting-item {
+    width: 100%; /* Asegura que ocupe todo el ancho de la columna */
+    display: flex;
+    flex-direction: column; /* Label encima del control */
+    gap: var(--spacing-xs); /* Espacio entre label y control */
+}
+
+.tts-settings .setting-item label {
+    margin-bottom: 0; /* Quitar margen extra */
     font-weight: 400; /* Normal weight for labels */
 }
-#voice-select {
-    width: 100%; /* Ocupar todo el ancho */
-    min-width: unset; /* Quitar min-width previo */
-    max-width: unset; /* Quitar max-width previo */
+
+/* Control de Selección de Voz */
+.setting-item #voice-select {
+    width: 100%; /* Ocupar ancho del .setting-item */
     padding: var(--spacing-sm);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
@@ -385,29 +433,40 @@ label {
     cursor: pointer;
 }
 
-.tts-settings .rate-control {
-    flex-direction: row; /* Slider y valor en línea */
+/* Control de Velocidad (Rate) */
+.setting-item .rate-control {
+    display: flex;
+    flex-direction: row;
     align-items: center;
+    width: 100%; /* Ocupar ancho del .setting-item */
     gap: var(--spacing-sm);
 }
-#rate-slider {
-    flex-grow: 1; /* Que ocupe el espacio disponible */
-    width: auto; /* Ancho automático */
-    margin: 0; /* Resetear márgenes */
+
+.setting-item #rate-slider {
+    flex-grow: 1; /* Slider ocupa espacio */
+    min-width: 50px; /* Ancho mínimo para el slider */
     cursor: pointer;
     accent-color: var(--color-primary);
+    margin: 0;
 }
-#rate-value {
-    min-width: 2.5em; /* Ajustar si es necesario */
+
+.setting-item #rate-value {
+    min-width: 2.5em;
     text-align: right;
     font-family: monospace;
     font-size: 0.9rem;
     color: var(--color-text-secondary);
+    flex-shrink: 0; /* No encoger el valor */
 }
 
+/* ========================================= */
+/* === FIN MODIFICACIONES LAYOUT ========= */
+/* ========================================= */
 
-/* Ajustes a botones generales dentro de controles */
-.navigation button, .tts-controls button:not(#play-pause) {
+
+/* Ajustes a botones generales dentro de controles (MENOS Play/Pause) */
+.navigation button:not(#goto-page), /* Excluir goto-page que está dentro de input-group */
+.tts-controls button:not(#play-pause) {
     /* Estilos por defecto para botones secundarios en sidebar */
     padding: var(--spacing-sm) var(--spacing-md);
     background-color: var(--color-section-background);
@@ -419,12 +478,23 @@ label {
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     width: auto; /* Ancho automático por defecto */
 }
-.navigation button:hover:not(:disabled),
-.tts-controls button:not(#play-pause):hover:not(:disabled) {
+/* Ajuste específico para botones de nav más pequeños si se desea */
+.navigation button#prev-page,
+.navigation button#next-page,
+.tts-controls .section-nav-controls button {
+    padding: var(--spacing-sm) var(--spacing-xs);
+    font-size: 0.85rem;
+}
+/* Estilo hover para botones secundarios */
+.navigation button:not(#goto-page):hover:not(:disabled),
+.tts-controls button:not(#play-pause):hover:not(:disabled),
+.page-input-group #goto-page:hover:not(:disabled) /* Incluir hover para GoTo */
+{
     background-color: var(--color-primary);
     color: white;
     border-color: var(--color-primary-hover);
 }
+
 
 /* Estilo para botones deshabilitados (general) */
 button:disabled,
@@ -548,11 +618,10 @@ input[type="file"][hidden] { display: none; }
          max-width: 150px; /* Reducir ancho del nombre de archivo */
     }
 
-    /* Ajustar controles en sidebar para layout horizontal si es necesario */
-    .nav-page-controls {
-        gap: var(--spacing-sm);
+    /* Ajustes en layout horizontal para pantallas más pequeñas si es necesario */
+    .navigation .nav-page-controls {
+        /* Podría necesitar flex-wrap: wrap; aquí si se vuelve muy estrecho */
+        gap: var(--spacing-xs); /* Menos gap */
     }
-     .nav-page-controls button {
-        padding: var(--spacing-sm);
-    }
+
 }

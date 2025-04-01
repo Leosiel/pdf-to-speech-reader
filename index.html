@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <!-- /Google Font -->
 
-    <!-- Estilos CSS -->
+    <!-- Estilos CSS (Modificados) -->
     <link rel="stylesheet" href="style.css">
 
     <!-- Librerías PDF.js -->
@@ -48,28 +48,31 @@
         <!-- Contenedor principal para sidebar y contenido -->
         <div class="viewer-main-area">
 
-            <!-- ===== BARRA LATERAL DE CONTROLES ===== -->
+            <!-- ===== BARRA LATERAL DE CONTROLES (MODIFICADA) ===== -->
             <aside id="controls-sidebar">
                 <h2>Controles</h2>
 
-                <!-- Navegación de Páginas -->
+                <!-- Navegación de Páginas (Reestructurada) -->
                 <div class="navigation control-group">
                     <h3>Navegación</h3>
                     <div class="nav-page-controls">
                         <button id="prev-page" disabled title="Página Anterior"><<</button>
+                        <!-- Grupo centralizado -->
                         <div class="page-input-group">
                              <label for="page-num-input">Página:</label>
+                             <!-- Contenedor para input y total -->
                              <div>
-                                <input type="number" id="page-num-input" min="1" style="width: 60px;" disabled>
+                                <!-- ***** CAMBIO: Eliminado style="width: 45px;" ***** -->
+                                <input type="number" id="page-num-input" min="1" disabled>
                                 <span>/ <span id="total-pages-display">0</span></span>
                             </div>
+                            <button id="goto-page" disabled title="Ir a Página">Ir</button>
                         </div>
-                        <button id="goto-page" disabled title="Ir a Página">Ir</button>
                         <button id="next-page" disabled title="Página Siguiente">>></button>
                     </div>
                 </div>
 
-                <!-- Controles de Text-to-Speech (TTS) -->
+                <!-- Controles de Text-to-Speech (TTS) (Reestructurada) -->
                 <div class="tts-controls control-group">
                      <h3>Lectura</h3>
                      <div class="section-nav-controls">
@@ -78,13 +81,20 @@
                         <button id="next-section" disabled title="Sección Siguiente">Sección ></button>
                      </div>
                      <button id="play-pause" disabled title="Leer/Detener">▶️ Leer</button>
-                     <div class="tts-settings">
-                        <label for="voice-select">Voz:</label>
-                        <select id="voice-select" disabled></select>
-                        <label for="rate-slider">Velocidad:</label>
-                        <div class="rate-control">
-                            <input type="range" id="rate-slider" min="0.5" max="2" step="0.1" value="1" disabled>
-                            <span id="rate-value">1.0</span>
+                     <!-- Contenedor para ajustes (Voz y Velocidad) -->
+                     <div class="tts-settings"> <!-- Este div ahora será columna -->
+                        <!-- Grupo Voz -->
+                        <div class="setting-item">
+                            <label for="voice-select">Voz:</label>
+                            <select id="voice-select" disabled></select>
+                        </div>
+                        <!-- Grupo Velocidad -->
+                        <div class="setting-item">
+                            <label for="rate-slider">Velocidad:</label>
+                            <div class="rate-control">
+                                <input type="range" id="rate-slider" min="0.5" max="2" step="0.1" value="1" disabled>
+                                <span id="rate-value">1.0</span>
+                            </div>
                         </div>
                      </div>
                 </div>
@@ -94,14 +104,11 @@
             <!-- ===== ÁREA DE CONTENIDO DEL VISOR ===== -->
             <div class="viewer-content-area">
                  <h2>2. Lectura del Documento</h2>
-
-                <!-- Visor de PDF con Capas e Indicador -->
+                <!-- ... (resto sin cambios) ... -->
                 <div id="pdf-viewer">
                     <canvas id="pdf-canvas"></canvas>
                     <div id="text-layer" class="textLayer"></div>
-                    <!-- NUEVO: Indicador lateral -->
                     <div id="highlight-indicator-bar" class="highlight-indicator"></div>
-                    <!-- Los overlays anteriores ya no existen -->
                 </div>
             </div>
             <!-- ===== FIN ÁREA DE CONTENIDO ===== -->
@@ -110,6 +117,6 @@
     </section>
 
     <!-- Script principal de la aplicación -->
-    <script src="script.js" type="module"></script>
+    <script src="script.js"></script>
 </body>
 </html>

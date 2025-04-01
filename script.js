@@ -31,7 +31,7 @@ const sectionInfoDisplay = document.getElementById('section-info');
 const voiceSelect = document.getElementById('voice-select');
 const rateSlider = document.getElementById('rate-slider');
 const rateValueDisplay = document.getElementById('rate-value');
-const highlightIndicatorBar = document.getElementById('highlight-indicator-bar'); // Indicador lateral
+const highlightIndicatorBar = document.getElementById('highlight-indicator-bar'); // Indicador lateral (de la versión nueva)
 const DEFAULT_VOICE_NAME = "Microsoft Jorge Online (Natural) - Spanish (Mexico)"; // Puedes cambiar esto si prefieres otra voz
 
 // --- Estado Global de la Aplicación ---
@@ -132,6 +132,7 @@ async function processSelectedFile() {
 
 // --- Renderizado de Página PDF ---
 async function renderPage(num) {
+    // (Esta función es la misma de la versión NUEVA)
     if (pageRendering || !pdfDoc) {
         return Promise.reject(pageRendering ? "Renderizado en progreso" : "Documento PDF no cargado");
     }
@@ -180,7 +181,18 @@ async function renderPage(num) {
             textDivs: [] // PDF.js v3+ necesita este array vacío
         }).promise;
 
-        extractSectionsFromTextLayer(); // Extraer secciones de texto
+        extractSectionsFromTextLayer(); // <<-- LLAMA A LA VERSIÓN ANTIGUA/CORREGIDA
+
+        // *** Mostrar indicador en la primera seccion si existe ***
+        if (pageSections.length > 0) {
+            currentSectionIndex = 0; 
+            // Establecer la primera seccion como actual
+            highlightSection(currentSectionIndex, false)
+            // Resaltar sin scroll
+        } else{
+            removeHighlight();
+            // Asegurar que no haya highlight si la página está vacía
+        }
 
     } catch (error) {
         console.error(`Error al renderizar página ${num}:`, error);
@@ -197,6 +209,10 @@ async function renderPage(num) {
 }
 
 // --- Extracción de Secciones de Texto ---
+/**
+ * Extrae bloques de texto (secciones) de los spans en textLayerDiv.
+ * (ESTA ES LA FUNCIÓN DE LA VERSIÓN ANTIGUA - La que funcionaba bien)
+ */
 function extractSectionsFromTextLayer() {
     pageSections = [];
     const textElements = Array.from(textLayerDiv.querySelectorAll('span'));
@@ -209,48 +225,28 @@ function extractSectionsFromTextLayer() {
 
     // Ordenar elementos visualmente (arriba->abajo, izq->der)
     textElements.sort((a, b) => {
-        // PDF.js a veces usa transform matrix, extraer top/left de ahí si existe
-        const getPosition = (el) => {
-            let top = parseFloat(el.style.top);
-            let left = parseFloat(el.style.left);
-            if (el.style.transform) {
-                 // Ejemplo: transform: matrix(1, 0, 0, 1, 45.67, 89.12); -> left=45.67, top=89.12
-                const matrix = el.style.transform.match(/matrix\((.+)\)/);
-                if (matrix && matrix[1]) {
-                    const values = matrix[1].split(',').map(parseFloat);
-                    if (values.length === 6) {
-                        left = values[4];
-                        top = values[5];
-                    }
-                }
-            }
-            return { top, left };
-        };
-
-        const posA = getPosition(a);
-        const posB = getPosition(b);
-
-        const verticalTolerance = 5; // Aumentar tolerancia vertical
-
-        if (Math.abs(posA.top - posB.top) > verticalTolerance) {
-            return posA.top - posB.top;
+        const topA = parseFloat(a.style.top);
+        const topB = parseFloat(b.style.top);
+        const verticalTolerance = 1; // Píxeles de tolerancia (valor de la versión antigua)
+        if (Math.abs(topA - topB) > verticalTolerance) {
+            return topA - topB;
         } else {
-            return posA.left - posB.left;
+            const leftA = parseFloat(a.style.left);
+            const leftB = parseFloat(b.style.left);
+            return leftA - leftB;
         }
     });
 
     let currentSection = null;
-    const sentenceEndRegex = /[\.\?\!¿¡]$/; // Fin de frase (considerar ¿¡ iniciales también)
-    const paragraphBreakThreshold = 1.2; // Multiplicador de altura de línea para detectar salto de párrafo
+    const sentenceEndRegex = /[\.\?\!]$/; // Fin de frase simple (de la versión antigua)
 
-    textElements.forEach((span, index) => {
+    textElements.forEach(span => {
         const text = span.textContent.trim();
         if (!text) return; // Ignorar spans vacíos
 
         const spanTop = parseFloat(span.style.top);
-        // Estimar altura del span (offsetHeight puede ser 0 si aún no es visible)
-        const spanFontSize = parseFloat(span.style.fontSize) || (pdfViewport ? pdfViewport.height / 50 : 12); // Estimación fallback
-        const spanHeight = span.offsetHeight > 0 ? span.offsetHeight : spanFontSize * 1.2; // Usar offsetHeight si está disponible
+        // Estimación simple de altura (de la versión antigua)
+        const spanHeight = span.offsetHeight || parseFloat(span.style.fontSize) || 10;
 
         let startNewSection = false;
 
@@ -258,62 +254,50 @@ function extractSectionsFromTextLayer() {
             startNewSection = true;
         } else {
             const lastSectionSpan = currentSection.elements[currentSection.elements.length - 1];
-            const lastSpanTop = parseFloat(lastSectionSpan.style.top);
-            const lastSpanFontSize = parseFloat(lastSectionSpan.style.fontSize) || spanFontSize;
-            const lastSpanHeight = lastSectionSpan.offsetHeight > 0 ? lastSectionSpan.offsetHeight : lastSpanFontSize * 1.2;
-            const lastSectionSpanBottom = lastSpanTop + lastSpanHeight;
+            const lastSectionSpanBottom = parseFloat(lastSectionSpan.style.top) + (lastSectionSpan.offsetHeight || parseFloat(lastSectionSpan.style.fontSize) || 10);
+            // Umbral de la versión antigua
+            const verticalGapThreshold = spanHeight * 0.5;
 
-            const verticalGap = spanTop - lastSectionSpanBottom;
-            const avgLineHeight = (spanHeight + lastSpanHeight) / 2;
-            const verticalGapThreshold = avgLineHeight * paragraphBreakThreshold;
-
-            // console.log(`Span ${index}: "${text.substring(0,10)}..." Top: ${spanTop.toFixed(1)}, LastBottom: ${lastSectionSpanBottom.toFixed(1)}, Gap: ${verticalGap.toFixed(1)}, Threshold: ${verticalGapThreshold.toFixed(1)}`);
-
-
-            if (verticalGap > verticalGapThreshold) {
-                 // console.log(`   -> New section due to large vertical gap.`);
-                startNewSection = true; // Salto vertical significativo (probablemente nuevo párrafo)
+            if (spanTop > lastSectionSpanBottom + verticalGapThreshold) {
+                startNewSection = true; // Salto vertical significativo
             } else {
-                // Misma línea o línea cercana: ¿Terminó la frase anterior?
-                const previousSpanText = currentSection.text.trim(); // Usar texto acumulado de la sección
+                // Misma línea o cercana: ¿termina frase anterior? (lógica antigua)
+                const previousSpanText = lastSectionSpan.textContent.trim();
                 if (sentenceEndRegex.test(previousSpanText)) {
-                    // console.log(`   -> New section due to sentence end.`);
                     startNewSection = true;
                 }
             }
         }
 
         if (startNewSection) {
-            // Antes de empezar nueva sección, limpiar la anterior si termina en espacio
+            // Limpiar texto de la sección anterior antes de crear la nueva
             if (currentSection) {
-                currentSection.text = currentSection.text.trim();
+                 currentSection.text = currentSection.text.trim();
             }
             currentSection = { text: text, elements: [span] };
             pageSections.push(currentSection);
         } else {
-            // Añadir espacio si el span anterior no terminó en espacio y este no empieza con espacio
-            const needsSpace = currentSection.text.length > 0 &&
-                               !/\s$/.test(currentSection.text) &&
-                               !/^\s/.test(text);
+            // Añadir espacio si es necesario (lógica antigua)
+            const needsSpace = currentSection.text.length > 0 && !/\s$/.test(currentSection.text) && !/^\s/.test(text);
             currentSection.text += (needsSpace ? " " : "") + text;
             currentSection.elements.push(span);
         }
     });
-    // Limpiar última sección
+
+    // Limpiar última sección y filtrar vacías
      if (currentSection) {
         currentSection.text = currentSection.text.trim();
      }
-
-    // Filtrar secciones vacías que podrían quedar
     pageSections = pageSections.filter(section => section.text.length > 0);
 
     currentSectionIndex = pageSections.length > 0 ? 0 : -1;
-    console.log(`Extracción completada: ${pageSections.length} secciones encontradas en página ${currentPageNum}.`);
+    console.log(`Extracción (v. antigua) completada: ${pageSections.length} secciones encontradas en página ${currentPageNum}.`);
     updateSectionUI(); // Actualizar UI con el número de secciones
 }
 
 
 // --- Navegación (Páginas y Secciones) ---
+// (Funciones de la versión NUEVA, sin cambios)
 function goToPrevPage() {
     if (currentPageNum <= 1 || pageRendering) return;
     stopSpeech(); // Detiene habla y resetea indicador
@@ -344,34 +328,67 @@ function goToPrevSection() {
     if (currentSectionIndex <= 0 || pageRendering || pageSections.length === 0) return;
 
     const wasPlaying = isPlaying;
-    if (wasPlaying) stopSpeech(); // Detener si estaba sonando
+    if (wasPlaying) {
+        stopSpeech(); // Detener si estaba sonando
+    }
 
     currentSectionIndex--;
-    updateSectionUI();
-    highlightSection(currentSectionIndex, false); // Mostrar indicador y hacer scroll
+    updateSectionUI(); // Actualizar display "Sección X / Y"
 
-    if (wasPlaying) { // Si estaba sonando, reiniciar en la nueva sección
-        speakSection(currentSectionIndex);
+    // Decidir cómo llamar a highlightSection
+    if (wasPlaying) {
+        // Si acabamos de detener el habla, esperar al siguiente frame
+        requestAnimationFrame(() => {
+             console.log("Highlighting prev section (after stop)");
+            highlightSection(currentSectionIndex, false);
+        });
+    } else {
+        // Si no estaba sonando, resaltar inmediatamente
+         console.log("Highlighting prev section (no stop)");
+        highlightSection(currentSectionIndex, false);
     }
+
+    // Opcional: Reiniciar habla si se desea (actualmente comentado)
+    // if (wasPlaying) {
+    //     speakSection(currentSectionIndex);
+    // }
+
 }
 
 function goToNextSection() {
     if (pageRendering || pageSections.length === 0 || currentSectionIndex >= pageSections.length - 1) return;
 
     const wasPlaying = isPlaying;
-     if (wasPlaying) stopSpeech(); // Detener si estaba sonando
+    if (wasPlaying) {
+         stopSpeech(); // Detener si estaba sonando
+    }
 
     currentSectionIndex++;
-    updateSectionUI();
-    highlightSection(currentSectionIndex, false); // Mostrar indicador y hacer scroll
+    updateSectionUI(); // Actualizar display "Sección X / Y"
 
-    if (wasPlaying) { // Si estaba sonando, reiniciar en la nueva sección
-        speakSection(currentSectionIndex);
+    // Decidir cómo llamar a highlightSection
+    if (wasPlaying) {
+        // Si acabamos de detener el habla, esperar al siguiente frame
+        requestAnimationFrame(() => {
+             console.log("Highlighting next section (after stop)");
+            highlightSection(currentSectionIndex, false);
+        });
+    } else {
+        // Si no estaba sonando, resaltar inmediatamente
+         console.log("Highlighting next section (no stop)");
+        highlightSection(currentSectionIndex, false);
     }
+
+    // Opcional: Reiniciar habla si se desea (actualmente comentado)
+    // if (wasPlaying) {
+    //     speakSection(currentSectionIndex);
+    // }
+
 }
 
 
 // --- Control de Text-to-Speech (TTS) ---
+// (Funciones de la versión NUEVA, sin cambios)
 function populateVoiceList() {
     if (!('speechSynthesis' in window)) {
         console.warn("Speech Synthesis no soportado.");
@@ -452,7 +469,7 @@ function togglePlayPause() {
     if (isPlaying) {
         stopSpeech(); // Detiene habla y resetea indicador
     } else {
-        if (currentSectionIndex === -1) { // Si no hay sección seleccionada, empezar por la primera
+        if (currentSectionIndex === -1 && pageSections.length > 0) { // Si no hay sección seleccionada, empezar por la primera
              currentSectionIndex = 0;
              updateSectionUI();
         }
@@ -498,7 +515,7 @@ function speakSection(index) {
     currentUtterance.onstart = () => {
         if (!isPlaying) return; // Si se detuvo justo antes de empezar
         console.log(`Iniciando habla sección ${index + 1}/${pageSections.length}`);
-        highlightSection(index, false); // Aplicar INDICADOR y scroll al iniciar
+        highlightSection(index, true); // Aplicar INDICADOR y scroll al iniciar (TRUE para SCROLL)
     };
 
     currentUtterance.onend = () => {
@@ -597,12 +614,13 @@ function stopSpeech() {
 
     if (wasPlayingBeforeStop) { // Solo actuar sobre UI si realmente estaba sonando
         console.log("Reproducción detenida.");
-        removeHighlight(); // Resetear INDICADOR
+        //removeHighlight(); // Resetear INDICADOR
     }
     updatePlayPauseButton(); // Actualizar botón a estado 'Leer'
 }
 
 // --- Funciones de UI y Estado (Indicador, Botones, Info) ---
+// (Funciones de la versión NUEVA, usan highlightIndicatorBar)
 
 /**
  * Aplica el indicador lateral a la sección indicada y opcionalmente hace scroll.
@@ -638,9 +656,11 @@ function highlightSection(index, shouldScroll = false) {
     const lastRect = lastElement.getBoundingClientRect();
 
     // Calcular posiciones Top y Bottom relativas al CONTENEDOR pdfViewer
-    // Sumamos pdfViewer.scrollTop para coordenadas dentro del contenedor scrolleable
-    const relativeTop = firstRect.top - viewerRect.top + pdfViewer.scrollTop;
-    const relativeBottom = lastRect.bottom - viewerRect.top + pdfViewer.scrollTop;
+    // Sumamos pdfViewer.scrollTop para coordenadas dentro del contenido scrolleable del visor
+    // (si el propio visor tuviera scroll interno, si no, es 0)
+    const relativeTop = firstRect.top - viewerRect.top + (pdfViewer.scrollTop || 0);
+    const relativeBottom = lastRect.bottom - viewerRect.top + (pdfViewer.scrollTop || 0);
+
 
     // Calcular altura
     let highlightHeight = relativeBottom - relativeTop;
@@ -661,6 +681,12 @@ function highlightSection(index, shouldScroll = false) {
              removeHighlight(); return;
         }
     }
+    // Asegurar que el indicador no se salga por abajo del canvas/textLayer
+    const maxIndicatorBottom = pdfCanvas.height; // Usar altura del canvas como límite
+    if (finalTop + highlightHeight > maxIndicatorBottom) {
+        highlightHeight = Math.max(1, maxIndicatorBottom - finalTop); // Asegurar altura mínima
+    }
+
 
     // Aplicar estilos al indicador
     highlightIndicatorBar.style.top = `${finalTop}px`;
@@ -672,15 +698,15 @@ function highlightSection(index, shouldScroll = false) {
 
     // --- Scroll para centrar la sección en la ventana del NAVEGADOR ---
     if (shouldScroll) {
-        // Centro vertical del indicador DENTRO del pdfViewer (relativo a su contenido scrolleable)
+        // Centro vertical del indicador DENTRO del pdfViewer (relativo a su contenido scrolleable si lo tuviera)
         const indicatorCenterInViewer = finalTop + (highlightHeight / 2);
         // Centro vertical del indicador RELATIVO al DOCUMENTO de la página web
-        const indicatorCenterDocumentY = viewerRect.top + window.pageYOffset + indicatorCenterInViewer - pdfViewer.scrollTop;
+        const indicatorCenterDocumentY = viewerRect.top + window.scrollY + indicatorCenterInViewer - (pdfViewer.scrollTop || 0);
 
         // Calcular la posición Y a la que debe scrollear la VENTANA
         const targetScrollY = indicatorCenterDocumentY - (window.innerHeight / 2);
 
-        // console.log(`Scrolling: viewerRect.top=${viewerRect.top.toFixed(1)}, pageYOffset=${window.pageYOffset.toFixed(1)}, finalTop=${finalTop.toFixed(1)}, scrollTop=${pdfViewer.scrollTop.toFixed(1)}, targetScrollY=${targetScrollY.toFixed(1)}`);
+        // console.log(`Scrolling: viewerRect.top=${viewerRect.top.toFixed(1)}, scrollY=${window.scrollY.toFixed(1)}, finalTop=${finalTop.toFixed(1)}, scrollTop=${pdfViewer.scrollTop.toFixed(1)}, targetScrollY=${targetScrollY.toFixed(1)}`);
 
         window.scrollTo({
             top: Math.max(0, targetScrollY), // Evitar scroll negativo
@@ -774,7 +800,7 @@ function resetViewerState() {
 
     // Deshabilitar/Resetear botones del visor
     updatePageButtons(); updateSectionButtons(); updatePlayPauseButton();
-    // removeHighlight(); // Ya se llama en stopSpeech()
+    removeHighlight(); // Asegurar que el indicador se oculte al resetear
 }
 
 /**
@@ -793,6 +819,7 @@ function resetApp() {
 
 
 // --- Inicialización y Asignación de Event Listeners ---
+// (Funciones de la versión NUEVA, sin cambios)
 function setupEventListeners() {
     // Carga de archivo
     pdfUploadInput.addEventListener('change', handleFileSelectionEvent);
@@ -806,7 +833,10 @@ function setupEventListeners() {
         if (e.key === 'Enter') { e.preventDefault(); goToPage(); }
     });
      pageNumInput.addEventListener('change', () => { // Opcional: ir al cambiar si pierde foco
-         if (document.activeElement !== pageNumInput) goToPage();
+         // Solo ir a página si el input pierde el foco y NO es el botón de ir
+         if (document.activeElement !== pageNumInput && document.activeElement !== gotoPageButton) {
+             goToPage();
+         }
      });
 
 
@@ -822,12 +852,17 @@ function setupEventListeners() {
         const wasPlaying = isPlaying;
         if (wasPlaying) stopSpeech(); // Detener antes de cambiar
         updateSelectedVoice();
-        if (wasPlaying && currentSectionIndex !== -1) { // Reiniciar si estaba sonando
+        if (wasPlaying && currentSectionIndex !== -1 && pageSections.length > 0) { // Reiniciar si estaba sonando y hay secciones válidas
              setTimeout(() => { // Dar tiempo a que se asiente el cambio
                  isPlaying = true; // Marcar de nuevo
                  updatePlayPauseButton();
                  speakSection(currentSectionIndex);
              }, 50);
+        } else {
+            // Si no estaba sonando o no hay sección válida, solo actualizar la voz seleccionada
+            // y dejar los botones en el estado correcto (probablemente deshabilitado o 'Leer')
+             updatePlayPauseButton(); // Asegurar que el botón refleje el estado isPlaying=false
+             updateSectionButtons(); // Re-evaluar la disponibilidad de botones
         }
     });
 
@@ -835,27 +870,29 @@ function setupEventListeners() {
     rateSlider.addEventListener('input', (event) => {
         currentRate = parseFloat(event.target.value);
         rateValueDisplay.textContent = currentRate.toFixed(1);
-         if (isPlaying && currentUtterance) { // Ajustar en caliente si es posible
-             currentUtterance.rate = currentRate;
-         }
-         // Alternativa si el ajuste en caliente no funciona bien:
-         /*
-         const wasPlaying = isPlaying;
-         const currentIndex = currentSectionIndex;
-         if (wasPlaying) stopSpeech();
-         if (wasPlaying && currentIndex !== -1) {
+
+        // Intenta ajustar la velocidad en caliente si hay una locución activa
+        if (isPlaying && currentUtterance) {
+            // Cancelar y reiniciar la sección actual con la nueva velocidad puede ser más fiable
+            const currentIndex = currentSectionIndex; // Guardar índice
+             window.speechSynthesis.cancel(); // Cancelar habla actual
+             // Pequeña pausa antes de reiniciar para evitar problemas de timing
              setTimeout(() => {
-                 isPlaying = true;
-                 updatePlayPauseButton();
-                 speakSection(currentIndex);
+                 if(isPlaying && currentIndex === currentSectionIndex) { // Re-confirmar estado y que no se haya cambiado de sección
+                     console.log(`Reiniciando habla sección ${currentIndex + 1} con nueva velocidad ${currentRate}`);
+                     speakSection(currentIndex);
+                 }
              }, 50);
-         }
-         */
+
+        }
     });
 
     // Voces del sistema
     if ('speechSynthesis' in window && 'onvoiceschanged' in speechSynthesis) {
         speechSynthesis.onvoiceschanged = populateVoiceList;
+    } else {
+         // Si onvoiceschanged no está disponible, intenta cargar las voces una vez
+         populateVoiceList();
     }
 }
 
